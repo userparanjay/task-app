@@ -1,0 +1,17 @@
+# Local PostgreSQL for learning — start with: docker compose up -d
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: taskflow-auth-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taskflow_auth
+    ports:
+      - "5432:5432"
+    volumes:
+      - taskflow_auth_data:/var/lib/postgresql/data
+
+volumes:
+  taskflow_auth_data:
