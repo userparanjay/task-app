@@ -69,7 +69,6 @@ export async function getTasks(req, res) {
  */
 export async function getTaskStats(req, res) {
   try {
-    console.log("getTaskStats is called");
     const userId = req.user.id;
 
     const [totalTasks, completedTasks] = await Promise.all([
