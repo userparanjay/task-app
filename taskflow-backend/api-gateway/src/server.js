@@ -27,7 +27,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 
 // All task traffic under /api/tasks
-app.use("/api/tasks",()=>{console.log("tasks service is called");}, taskRoutes);
+app.use("/api/tasks", taskRoutes);
 
 // Simple health check for the gateway itself
 app.get("/health", (_req, res) => {
