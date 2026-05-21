@@ -22,7 +22,9 @@ import express from "express";
 import cors from "cors";
 
 import { connectDatabase } from "./prisma/prismaClient.js";
+
 import notificationRoutes from "./routes/notification.routes.js";
+import { startNotificationConsumer } from "./consumer/notification.consumer.js";
 
 const app = express();
 
@@ -60,6 +62,9 @@ async function startServer() {
     // Connect Prisma/Postgres
     await connectDatabase();
 
+    await startNotificationConsumer()
+
+  
     app.listen(PORT, () => {
       console.log(
         `Notification service running on http://localhost:${PORT}`

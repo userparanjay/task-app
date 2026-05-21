@@ -23,6 +23,7 @@ export async function createTask(req, res) {
         userId: req.user.id,
       },
     });
+    await createNotification({task: task.title, userId: req.user.id,status: task.status,priority: task.priority});
 
     return res.status(201).json({
       success: true,
