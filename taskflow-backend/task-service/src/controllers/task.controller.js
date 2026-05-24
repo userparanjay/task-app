@@ -7,6 +7,10 @@
 
 import prisma from "../prisma/prismaClient.js";
 
+import { taskCreateNotification } from "../producer/notification.create.producer.js";
+import { taskUpdatedNotification } from "../producer/notification.update.producer.js";
+import { taskDeleteNotification } from "../producer/notification.delete.producer.js";
+
 /**
  * POST /tasks
  */
@@ -23,7 +27,18 @@ export async function createTask(req, res) {
         userId: req.user.id,
       },
     });
-    await createNotification({task: task.title, userId: req.user.id,status: task.status,priority: task.priority});
+    console.log(task,"controller>>>>>")
+
+    // Publish Kafka event
+    await taskCreateNotification({
+      taskId: task.id,
+      userId: req.user.id,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      message: `Task "${task.title}" created`,
+    });
 
     return res.status(201).json({
       success: true,
@@ -32,7 +47,11 @@ export async function createTask(req, res) {
     });
   } catch (error) {
     console.error("createTask error:", error);
-    return res.status(500).json({ success: false, message: "Failed to create task" });
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create task",
+    });
   }
 }
 
@@ -50,31 +69,58 @@ export async function getTasks(req, res) {
         ...(priority && { priority }),
         ...(search && {
           OR: [
-            { title: { contains: search, mode: "insensitive" } },
-            { description: { contains: search, mode: "insensitive" } },
+            {
+              title: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              description: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
           ],
         }),
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
-    return res.status(200).json({ success: true, tasks });
+    return res.status(200).json({
+      success: true,
+      tasks,
+    });
   } catch (error) {
     console.error("getTasks error:", error);
-    return res.status(500).json({ success: false, message: "Failed to fetch tasks" });
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch tasks",
+    });
   }
 }
 
 /**
- * GET /tasks/stats — dashboard counts for logged-in user
+ * GET /tasks/stats
  */
 export async function getTaskStats(req, res) {
   try {
     const userId = req.user.id;
 
     const [totalTasks, completedTasks] = await Promise.all([
-      prisma.task.count({ where: { userId } }),
-      prisma.task.count({ where: { userId, status: "COMPLETED" } }),
+      prisma.task.count({
+        where: { userId },
+      }),
+
+      prisma.task.count({
+        where: {
+          userId,
+          status: "COMPLETED",
+        },
+      }),
     ]);
 
     return res.status(200).json({
@@ -85,7 +131,11 @@ export async function getTaskStats(req, res) {
     });
   } catch (error) {
     console.error("getTaskStats error:", error);
-    return res.status(500).json({ success: false, message: "Failed to fetch stats" });
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch stats",
+    });
   }
 }
 
@@ -102,13 +152,23 @@ export async function getTaskById(req, res) {
     });
 
     if (!task) {
-      return res.status(404).json({ success: false, message: "Task not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
     }
 
-    return res.status(200).json({ success: true, task });
+    return res.status(200).json({
+      success: true,
+      task,
+    });
   } catch (error) {
     console.error("getTaskById error:", error);
-    return res.status(500).json({ success: false, message: "Failed to fetch task" });
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch task",
+    });
   }
 }
 
@@ -118,16 +178,35 @@ export async function getTaskById(req, res) {
 export async function updateTask(req, res) {
   try {
     const existing = await prisma.task.findFirst({
-      where: { id: req.params.id, userId: req.user.id },
+      where: {
+        id: req.params.id,
+        userId: req.user.id,
+      },
     });
 
     if (!existing) {
-      return res.status(404).json({ success: false, message: "Task not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
     }
 
     const task = await prisma.task.update({
-      where: { id: req.params.id },
+      where: {
+        id: req.params.id,
+      },
       data: req.validated,
+    });
+
+    // Publish Kafka event
+    await taskUpdatedNotification({
+      taskId: task.id,
+      userId: task.userId,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      message: `Task "${task.title}" updated`,
     });
 
     return res.status(200).json({
@@ -137,7 +216,11 @@ export async function updateTask(req, res) {
     });
   } catch (error) {
     console.error("updateTask error:", error);
-    return res.status(500).json({ success: false, message: "Failed to update task" });
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update task",
+    });
   }
 }
 
@@ -147,14 +230,31 @@ export async function updateTask(req, res) {
 export async function deleteTask(req, res) {
   try {
     const existing = await prisma.task.findFirst({
-      where: { id: req.params.id, userId: req.user.id },
+      where: {
+        id: req.params.id,
+        userId: req.user.id,
+      },
     });
 
     if (!existing) {
-      return res.status(404).json({ success: false, message: "Task not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
     }
 
-    await prisma.task.delete({ where: { id: req.params.id } });
+    await prisma.task.delete({
+      where: {
+        id: req.params.id,
+      },
+    });
+
+    // Publish Kafka event
+    await taskDeleteNotification({
+      taskId: existing.id,
+      userId: existing.userId,
+      message: `Task "${existing.title}" deleted`,
+    });
 
     return res.status(200).json({
       success: true,
@@ -162,6 +262,10 @@ export async function deleteTask(req, res) {
     });
   } catch (error) {
     console.error("deleteTask error:", error);
-    return res.status(500).json({ success: false, message: "Failed to delete task" });
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete task",
+    });
   }
 }
