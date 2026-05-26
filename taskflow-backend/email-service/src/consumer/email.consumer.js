@@ -3,6 +3,10 @@ import { sendEmail } from "../services/email.service.js";
 import { publishToRetryOrDLQ } from "../services/retry.service.js";
 import { RETRY_CONFIG } from "../config/retryConfig.js";
 import { parseMessageMetadata } from "../utils/parseMessageMetadata.js";
+import {
+  claimEvent,
+  releaseEvent,
+} from "../helpers/idempotency.helper.js";
 
 export const startEmailConsumer = async () => {
   await producer.connect();
@@ -76,24 +80,7 @@ export const startEmailConsumer = async () => {
         return;
       }
 
-      try {
-        console.log(
-          isRetry
-            ? `🔁 Retry attempt ${attempt}`
-            : "📩 Processing email"
-        );
-
-        // simulate failure
-        // throw new Error(
-        //   "Simulated email failure"
-        // );
-
-        await sendEmail({
-          to: "pnajan@bestpeers.com",
-          subject: `Task Event: ${originalTopic}`,
-          text: data.message,
-        });
-
+      const commitOffset = async () => {
         await consumer.commitOffsets([
           {
             topic,
@@ -103,11 +90,38 @@ export const startEmailConsumer = async () => {
             ).toString(),
           },
         ]);
+      };
+
+      const claimed = await claimEvent(data.eventId);
+      if (!claimed) {
+        console.log(
+          `⏭️ Duplicate email event skipped: ${data.eventId}`
+        );
+        await commitOffset();
+        return;
+      }
+
+      try {
+        console.log(
+          isRetry
+            ? `🔁 Retry attempt ${attempt}`
+            : "📩 Processing email"
+        );
+
+        await sendEmail({
+          to: "pnajan@bestpeers.com",
+          subject: `Task Event: ${originalTopic}`,
+          text: data.message,
+        });
+
+        await commitOffset();
 
         console.log(
           "✅ Email processed"
         );
       } catch (error) {
+        await releaseEvent(data.eventId);
+
         console.error(
           "❌ Email failed",
           error.message
@@ -119,15 +133,7 @@ export const startEmailConsumer = async () => {
           error,
         });
 
-        await consumer.commitOffsets([
-          {
-            topic,
-            partition,
-            offset: (
-              Number(message.offset) + 1
-            ).toString(),
-          },
-        ]);
+        await commitOffset();
       }
     },
   });

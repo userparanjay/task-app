@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import { startEmailConsumer } from "./consumer/email.consumer.js";
+import { connectRedis } from "./config/redis.js";
 
 dotenv.config();
 
@@ -8,10 +9,18 @@ const app = express();
 
 app.use(express.json());
 
-startEmailConsumer();
+async function startServer() {
+  await connectRedis();
+  await startEmailConsumer();
 
-app.listen(process.env.PORT, () => {
-  console.log(
-    `Email service running on http://localhost:${process.env.PORT}`
-  );
+  app.listen(process.env.PORT, () => {
+    console.log(
+      `Email service running on http://localhost:${process.env.PORT}`
+    );
+  });
+}
+
+startServer().catch((error) => {
+  console.error("Failed to start email-service:", error.message);
+  process.exit(1);
 });

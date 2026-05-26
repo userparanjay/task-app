@@ -1,5 +1,3 @@
-
-
 version: "3.9"
 
 services:
@@ -83,11 +81,31 @@ services:
     networks:
       - backend-network
 
+  # =========================
+  # Redis
+  # =========================
+  redis:
+    image: redis:7-alpine
+    container_name: taskflow-redis
+    restart: unless-stopped
+
+    ports:
+      - "6380:6379"
+
+    command: ["redis-server", "--appendonly", "yes"]
+
+    volumes:
+      - taskflow_redis_data:/data
+
+    networks:
+      - backend-network
+
 # =========================
 # Volumes
 # =========================
 volumes:
   taskflow_auth_data:
+  taskflow_redis_data:
 
 # =========================
 # Networks

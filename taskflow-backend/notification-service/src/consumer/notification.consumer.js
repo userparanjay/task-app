@@ -5,6 +5,7 @@ import {
   handleTaskUpdate,
   handleTaskDelete,
 } from "../helpers/task.helper.js";
+import { claimEvent } from "../helpers/idempotency.helper.js";
 
 export const startNotificationConsumer = async () => {
   try {
@@ -42,6 +43,14 @@ export const startNotificationConsumer = async () => {
             `📩 Event received: ${topic}`,
             data
           );
+
+          const claimed = await claimEvent(data.eventId);
+          if (!claimed) {
+            console.log(
+              `⏭️ Duplicate event skipped: ${data.eventId}`
+            );
+            return;
+          }
 
           switch (topic) {
             case "task-created":

@@ -7,9 +7,8 @@
 
 import prisma from "../prisma/prismaClient.js";
 
-import { taskCreateNotification } from "../producer/notification.create.producer.js";
-import { taskUpdatedNotification } from "../producer/notification.update.producer.js";
-import { taskDeleteNotification } from "../producer/notification.delete.producer.js";
+import { taskProducer } from "../producer/notification.producer.js";
+import crypto from "crypto";
 
 /**
  * POST /tasks
@@ -30,7 +29,8 @@ export async function createTask(req, res) {
     console.log(task,"controller>>>>>")
 
     // Publish Kafka event
-    await taskCreateNotification({
+    await taskProducer("task-created",{
+      eventId:crypto.randomUUID(),
       taskId: task.id,
       userId: req.user.id,
       title: task.title,
@@ -199,7 +199,8 @@ export async function updateTask(req, res) {
     });
 
     // Publish Kafka event
-    await taskUpdatedNotification({
+    await taskProducer("task-updated",{
+      eventId:crypto.randomUUID(),
       taskId: task.id,
       userId: task.userId,
       title: task.title,
@@ -250,7 +251,8 @@ export async function deleteTask(req, res) {
     });
 
     // Publish Kafka event
-    await taskDeleteNotification({
+    await taskProducer("task-deleted",{
+      eventId:crypto.randomUUID(),
       taskId: existing.id,
       userId: existing.userId,
       message: `Task "${existing.title}" deleted`,

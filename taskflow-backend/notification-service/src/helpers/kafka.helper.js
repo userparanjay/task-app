@@ -7,7 +7,7 @@ export async function sendToRetryTopic(topic, message) {
     topic,
     messages: [
       {
-        key: String(message.taskId),
+        key: message.eventId ?? String(message.taskId),
         value: JSON.stringify(message),
       },
     ],
@@ -21,7 +21,7 @@ export async function sendToDLQ(topic, message, error) {
     topic,
     messages: [
       {
-        key: String(message.taskId),
+        key: message.eventId ?? String(message.taskId),
         value: JSON.stringify({
           ...message,
           error: error.message,

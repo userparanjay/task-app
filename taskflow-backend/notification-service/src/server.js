@@ -22,6 +22,7 @@ import express from "express";
 import cors from "cors";
 
 import { connectDatabase } from "./prisma/prismaClient.js";
+import { connectRedis } from "./config/redis.js";
 
 import notificationRoutes from "./routes/notification.routes.js";
 import { startNotificationConsumer } from "./consumer/notification.consumer.js";
@@ -61,8 +62,9 @@ async function startServer() {
   try {
     // Connect Prisma/Postgres
     await connectDatabase();
+    await connectRedis();
 
-    await startNotificationConsumer()
+    await startNotificationConsumer();
 
   
     app.listen(PORT, () => {

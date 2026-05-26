@@ -2,12 +2,13 @@ import { producer } from "../config/kafka.js";
 
 await producer.connect();
 
-export const taskCreateNotification = async (payload) => {
+export const taskProducer = async (topic,payload) => {
 
   await producer.send({
-    topic: "task-created",
+    topic: topic,
     messages: [
       {
+        key: payload.eventId,
         value: JSON.stringify(payload),
       },
     ],
