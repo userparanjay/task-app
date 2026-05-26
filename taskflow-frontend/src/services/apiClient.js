@@ -11,11 +11,11 @@ import axios from 'axios';
 import { STORAGE_KEYS } from '../constants';
 import { storage } from '../utils/storage';
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const apiClient = axios.create({
   baseURL,
-  timeout: 15000,
+  timeout: Number(import.meta.env.VITE_HTTP_TIMEOUT_MS),
   headers: {
     'Content-Type': 'application/json',
   },

@@ -1,9 +1,7 @@
+import "dotenv/config";
 import express from "express";
-import dotenv from "dotenv";
 import { startEmailConsumer } from "./consumer/email.consumer.js";
 import { connectRedis } from "./config/redis.js";
-
-dotenv.config();
 
 const app = express();
 

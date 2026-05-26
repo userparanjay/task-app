@@ -1,9 +1,9 @@
-
+import "dotenv/config";
 import { Kafka } from "kafkajs";
 
 export const kafka = new Kafka({
-  clientId: "task-service",
-  brokers: ["127.0.0.1:9092"],
+  clientId: process.env.KAFKA_CLIENT_ID,
+  brokers: [process.env.KAFKA_BROKER],
 });
 
 export const producer = kafka.producer();

@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/", authRoutes);
 
-const PORT = process.env.PORT || 5003;
+const PORT = process.env.PORT;
 
 async function startServer() {
   try {

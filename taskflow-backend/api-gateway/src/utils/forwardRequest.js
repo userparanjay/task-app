@@ -34,7 +34,7 @@ export async function forwardRequest(req, res, { baseUrl, method, path, serviceN
       data: req.body,
       headers,
       params: req.query,
-      timeout: 15000,
+      timeout: Number(process.env.HTTP_TIMEOUT_MS),
       validateStatus: () => true,
     });
 

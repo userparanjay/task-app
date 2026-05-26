@@ -1,6 +1,7 @@
+import "dotenv/config";
 import { producer } from "../config/kafka.js";
 
-export const MAX_RETRY = 3;
+export const MAX_RETRY = Number(process.env.KAFKA_MAX_RETRY);
 
 export async function sendToRetryTopic(topic, message) {
   await producer.send({

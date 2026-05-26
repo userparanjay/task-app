@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 import { Prisma } from "@prisma/client";
 import { createUser, findUserByEmail } from "../data/users.js";
 
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS);
 
 export async function signup(req, res) {
   try {
@@ -77,7 +77,7 @@ export async function login(req, res) {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" },
+      { expiresIn: process.env.JWT_EXPIRES_IN },
     );
 
     return res.status(200).json({

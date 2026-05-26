@@ -17,7 +17,7 @@ import { forwardRequest } from "../utils/forwardRequest.js";
 
 const router = Router();
 
-const authBaseUrl = process.env.AUTH_SERVICE_URL || "http://localhost:5003";
+const authBaseUrl = process.env.AUTH_SERVICE_URL;
 
 // POST /api/auth/signup  →  auth-service POST /signup
 router.post("/signup", async (req, res) => {

@@ -109,7 +109,7 @@ export const startEmailConsumer = async () => {
         );
 
         await sendEmail({
-          to: "pnajan@bestpeers.com",
+          to: process.env.EMAIL_TO,
           subject: `Task Event: ${originalTopic}`,
           text: data.message,
         });

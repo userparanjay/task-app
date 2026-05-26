@@ -1,7 +1,8 @@
+import "dotenv/config";
 import { redis } from "../config/redis.js";
 
-const KEY_PREFIX = "notification:processed:event:";
-const TTL_SECONDS = 7 * 24 * 60 * 60;
+const KEY_PREFIX = process.env.REDIS_IDEMPOTENCY_KEY_PREFIX;
+const TTL_SECONDS = Number(process.env.REDIS_IDEMPOTENCY_TTL_SECONDS);
 
 /**
  * Atomically claim an event for processing. Returns false if already processed.

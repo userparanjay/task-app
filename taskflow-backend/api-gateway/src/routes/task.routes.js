@@ -7,7 +7,7 @@ import { forwardRequest } from "../utils/forwardRequest.js";
 
 const router = Router();
 
-const taskBaseUrl = process.env.TASK_SERVICE_URL || "http://localhost:5004";
+const taskBaseUrl = process.env.TASK_SERVICE_URL;
 
 router.use(async (req, res) => {
   const path = `/tasks${req.path === "/" ? "" : req.path}`;

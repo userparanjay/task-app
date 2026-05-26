@@ -1,16 +1,13 @@
+import "dotenv/config";
 import { Kafka } from "kafkajs";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 export const kafka = new Kafka({
-  clientId: "email-service",
+  clientId: process.env.KAFKA_CLIENT_ID,
   brokers: [process.env.KAFKA_BROKER],
 });
 
 export const consumer = kafka.consumer({
-  groupId: "email-group-v3",
+  groupId: process.env.KAFKA_CONSUMER_GROUP_ID,
 });
 
-export const producer =
-  kafka.producer();
+export const producer = kafka.producer();

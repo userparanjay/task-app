@@ -9,11 +9,11 @@ import { STORAGE_KEYS } from '../constants';
 import { storage } from '../utils/storage';
 
 const baseURL =
-  import.meta.env.VITE_AUTH_API_URL || 'http://localhost:5000/api/auth';
+  import.meta.env.VITE_AUTH_API_URL;
 
 export const authApiClient = axios.create({
   baseURL,
-  timeout: 15000,
+  timeout: Number(import.meta.env.VITE_HTTP_TIMEOUT_MS),
   headers: {
     'Content-Type': 'application/json',
   },

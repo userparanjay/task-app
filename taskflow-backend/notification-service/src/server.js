@@ -53,7 +53,7 @@ app.get("/health", (_req, res) => {
  */
 app.use("/notifications", notificationRoutes);
 
-const PORT = process.env.PORT || 5005;
+const PORT = process.env.PORT;
 
 /**
  * Start server only after DB connection

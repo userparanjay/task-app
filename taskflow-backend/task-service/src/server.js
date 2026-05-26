@@ -26,7 +26,7 @@ app.get("/health", (_req, res) => {
 
 app.use("/tasks",taskRoutes);
 
-const PORT = process.env.PORT || 5004;
+const PORT = process.env.PORT;
 
 async function startServer() {
   try {
