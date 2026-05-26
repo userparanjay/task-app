@@ -1,35 +1,20 @@
-import { consumer } from "../config/kafka.js";
+import { consumer, producer } from "../config/kafka.js";
 import { sendEmail } from "../services/email.service.js";
-import {
-  sendToRetryTopic,
-  sendToDLQ,
-} from "../services/retry.service.js";
+import { publishToRetryOrDLQ } from "../services/retry.service.js";
+import { RETRY_CONFIG } from "../config/retryConfig.js";
+import { parseMessageMetadata } from "../utils/parseMessageMetadata.js";
 
 export const startEmailConsumer = async () => {
+  await producer.connect();
   await consumer.connect();
 
   await consumer.subscribe({
-    topic: "task-created",
-    fromBeginning: false,
-  });
-
-  await consumer.subscribe({
-    topic: "task-updated",
-    fromBeginning: false,
-  });
-
-  await consumer.subscribe({
-    topic: "task-deleted",
-    fromBeginning: false,
-  });
-
-  await consumer.subscribe({
-    topic: "email-retry-topic",
-    fromBeginning: false,
-  });
-
-  await consumer.subscribe({
-    topic: "email-dlq-topic",
+    topics: [
+      "task-created",
+      "task-updated",
+      "task-deleted",
+      RETRY_CONFIG.RETRY_TOPIC
+    ],
     fromBeginning: false,
   });
 
@@ -37,106 +22,113 @@ export const startEmailConsumer = async () => {
 
   await consumer.run({
     autoCommit: false,
-    eachMessage: async ({ topic, partition, message }) => {
-      const data = JSON.parse(message.value.toString());
-    
-      try {
-        switch (topic) {
-    
-          // =========================
-          // 1. BUSINESS TOPICS
-          // =========================
-          case "task-created":
-          case "task-updated":
-          case "task-deleted": {
-            await sendEmail({
-              to: "pnajan@bestpeers.com",
-              subject: `Task Event: ${topic}`,
-              text: data.message,
-            });
-    
-            await consumer.commitOffsets([
-              {
-                topic,
-                partition,
-                offset: (Number(message.offset) + 1).toString(),
-              },
-            ]);
-    
-            break;
-          }
-    
-          // =========================
-          // 2. RETRY TOPIC
-          // =========================
-          case "email-retry-topic": {
-            const retryCount = data.retryCount || 0;
-    
-            try {
-              await sendEmail({
-                to: "pnajan@bestpeers.com",
-                subject: `Retry Email`,
-                text: data.message,
-              });
-    
-              await consumer.commitOffsets([
-                {
-                  topic,
-                  partition,
-                  offset: (Number(message.offset) + 1).toString(),
-                },
-              ]);
-            } catch (err) {
-              if (retryCount < 3) {
-                await sendToRetryTopic(data, retryCount + 1);
-              } else {
-                await sendToDLQ(data);
-              }
-    
-              await consumer.commitOffsets([
-                {
-                  topic,
-                  partition,
-                  offset: (Number(message.offset) + 1).toString(),
-                },
-              ]);
-            }
-    
-            break;
-          }
-    
-          // =========================
-          // 3. DLQ TOPIC
-          // =========================
-          case "email-dlq-topic": {
-            console.log("☠️ FINAL FAILED MESSAGE:", data);
-    
-            await consumer.commitOffsets([
-              {
-                topic,
-                partition,
-                offset: (Number(message.offset) + 1).toString(),
-              },
-            ]);
-    
-            break;
-          }
-    
-          default: {
-            console.log("⚠️ Unknown topic:", topic);
-    
-            await consumer.commitOffsets([
-              {
-                topic,
-                partition,
-                offset: (Number(message.offset) + 1).toString(),
-              },
-            ]);
+
+    eachMessage: async ({
+      topic,
+      partition,
+      message,
+    }) => {
+      const {
+        isRetry,
+        originalTopic,
+        attempt,
+        headers,
+      } = parseMessageMetadata(
+        topic,
+        message
+      );
+
+      // delayed retry
+      if (isRetry) {
+        const retryAt =
+          headers["x-next-retry-at"]?.toString();
+
+        if (retryAt) {
+          const waitMs =
+            new Date(retryAt).getTime() -
+            Date.now();
+
+          if (waitMs > 0) {
+            console.log(
+              `⏳ Waiting ${waitMs}ms`
+            );
+
+            await new Promise((resolve) =>
+              setTimeout(resolve, waitMs)
+            );
           }
         }
-      } catch (err) {
-        console.error("Unexpected error:", err);
       }
-    }
+
+      let data;
+
+      try {
+        data = JSON.parse(
+          message.value.toString()
+        );
+      } catch (error) {
+        await publishToRetryOrDLQ({
+          topic: originalTopic,
+          message,
+          error,
+        });
+
+        return;
+      }
+
+      try {
+        console.log(
+          isRetry
+            ? `🔁 Retry attempt ${attempt}`
+            : "📩 Processing email"
+        );
+
+        // simulate failure
+        // throw new Error(
+        //   "Simulated email failure"
+        // );
+
+        await sendEmail({
+          to: "pnajan@bestpeers.com",
+          subject: `Task Event: ${originalTopic}`,
+          text: data.message,
+        });
+
+        await consumer.commitOffsets([
+          {
+            topic,
+            partition,
+            offset: (
+              Number(message.offset) + 1
+            ).toString(),
+          },
+        ]);
+
+        console.log(
+          "✅ Email processed"
+        );
+      } catch (error) {
+        console.error(
+          "❌ Email failed",
+          error.message
+        );
+
+        await publishToRetryOrDLQ({
+          topic: originalTopic,
+          message,
+          error,
+        });
+
+        await consumer.commitOffsets([
+          {
+            topic,
+            partition,
+            offset: (
+              Number(message.offset) + 1
+            ).toString(),
+          },
+        ]);
+      }
+    },
   });
 };
