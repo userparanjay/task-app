@@ -1,84 +1,84 @@
-import prisma from "../prisma/prismaClient.js";
-import { consumer } from "../config/kafka.js";
+import { consumer ,producer} from "../config/kafka.js";
+
+import {
+  handleTaskCreated,
+  handleTaskUpdate,
+  handleTaskDelete,
+} from "../helpers/task.helper.js";
 
 export const startNotificationConsumer = async () => {
   try {
     await consumer.connect();
-
-    // Subscribe to all task events
+    await producer.connect()
     await consumer.subscribe({
       topics: [
         "task-created",
         "task-updated",
         "task-deleted",
+
+        // retry topics
+        "task-create-retry",
+        "task-update-retry",
+        "task-delete-retry",
       ],
       fromBeginning: false,
     });
 
-    console.log("✅ Notification consumer connected");
+    console.log(
+      "✅ Notification consumer connected"
+    );
 
     await consumer.run({
-      eachMessage: async ({ topic, message }) => {
+      eachMessage: async ({
+        topic,
+        message,
+      }) => {
         try {
-          const data = JSON.parse(message.value.toString());
+          const data = JSON.parse(
+            message.value.toString()
+          );
 
-          console.log(`📩 Event received: ${topic}`, data);
+          console.log(
+            `📩 Event received: ${topic}`,
+            data
+          );
 
           switch (topic) {
-            /**
-             * CREATE notification
-             */
             case "task-created":
-              await prisma.notification.create({
-                data: {
-                  taskId: data.taskId,
-                  userId: data.userId,
-                  message: data.message,
-                },
-              });
-
-              console.log("✅ Notification created");
+            case "task-create-retry":
+              await handleTaskCreated(data);
               break;
 
-            /**
-             * UPDATE notification
-             */
             case "task-updated":
-              await prisma.notification.updateMany({
-                where: {
-                  taskId: data.taskId,
-                },
-                data: {
-                  message: data.message,
-                },
-              });
-
-              console.log("✅ Notification updated");
+            case "task-update-retry":
+              await handleTaskUpdate(data);
               break;
 
-            /**
-             * DELETE notification
-             */
             case "task-deleted":
-              await prisma.notification.deleteMany({
-                where: {
-                  taskId: data.taskId,
-                },
-              });
-
-              console.log("✅ Notification deleted");
+            case "task-delete-retry":
+              await handleTaskDelete(data);
               break;
 
             default:
-              console.log("Unknown topic:", topic);
+              console.log(
+                "Unknown topic:",
+                topic
+              );
           }
         } catch (error) {
-          console.error("Kafka processing error:", error);
+          console.error(
+            "Kafka processing error:",
+            error.message
+          );
         }
       },
     });
   } catch (error) {
-    console.error("Failed to start notification consumer:", error);
+    console.error(
+      "Failed to start notification consumer:",
+      error
+    );
+
     throw error;
   }
 };

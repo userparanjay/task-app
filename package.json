@@ -1,0 +1,12 @@
+{
+  "name": "task-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "gnome-terminal --tab --title='Docker' -- bash -c 'docker compose up; exec bash' && gnome-terminal --tab --title='API Gateway' -- bash -c 'cd taskflow-backend/api-gateway && npm run dev; exec bash' && gnome-terminal --tab --title='Auth Service' -- bash -c 'cd taskflow-backend/auth-service && npm run dev; exec bash' && gnome-terminal --tab --title='Task Service' -- bash -c 'cd taskflow-backend/task-service && npm run dev; exec bash' && gnome-terminal --tab --title='Email Service' -- bash -c 'cd taskflow-backend/email-service && npm run dev; exec bash' && gnome-terminal --tab --title='Notification Service' -- bash -c 'cd taskflow-backend/notification-service && npm run dev; exec bash' && gnome-terminal --tab --title='Frontend' -- bash -c 'cd taskflow-frontend && npm run dev; exec bash'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

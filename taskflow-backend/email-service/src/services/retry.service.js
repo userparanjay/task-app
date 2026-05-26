@@ -4,6 +4,8 @@ export const sendToRetryTopic = async (
   payload,
   retryCount
 ) => {
+  console.log(payload,"retry>>>>>>>>>>>>>>>>>>>>")
+  await producer.connect()
   await producer.send({
     topic: "email-retry-topic",
     messages: [
@@ -24,6 +26,7 @@ export const sendToRetryTopic = async (
 export const sendToDLQ = async (
   payload
 ) => {
+  await producer.connect()
   await producer.send({
     topic: "email-dlq-topic",
     messages: [
