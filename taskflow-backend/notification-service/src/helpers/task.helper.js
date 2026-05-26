@@ -1,9 +1,9 @@
 import prisma from "../prisma/prismaClient.js";
-import { sendToDLQ,sendToRetryTopic,MAX_RETRY } from "./kafka.helper.js";
+import { handleRetry } from "./retry.helper.js";
 
-export async function handleTaskCreated (data){
-
-  try{
+export async function handleTaskCreated(data) {
+  try {
+    // throw new Error("Simulated create failure");
     await prisma.notification.create({
       data: {
         taskId: data.taskId,
@@ -11,23 +11,25 @@ export async function handleTaskCreated (data){
         message: data.message,
       },
     });
-  }catch(err){
-    console.error("Failed processing task create:", err.message);
-    const retryCount = data.retryCount || 0;
-    if(retryCount<MAX_RETRY){
-      await sendToRetryTopic("task-create-retry",{
-        ...data,
-        retryCount: retryCount + 1,
-      });
-    }else{
-      await sendToDLQ( 'task-create-dlq',data, err);
-    }
+
+    console.log("✅ Notification created");
+  } catch (err) {
+    console.error(
+      "❌ Failed processing task create:",
+      err.message
+    );
+
+    await handleRetry({
+      retryTopic: "task-create-retry",
+      dlqTopic: "task-create-dlq",
+      data,
+      error: err,
+    });
   }
-  }
-  
-  export async function handleTaskUpdate (data){
-   
-  try{
+}
+
+export async function handleTaskUpdate(data) {
+  try {
     await prisma.notification.updateMany({
       where: {
         taskId: data.taskId,
@@ -36,43 +38,43 @@ export async function handleTaskCreated (data){
         message: data.message,
       },
     });
-  }catch(err){
-    console.error("Failed processing task update:", err.message);
-    const retryCount = data.retryCount || 0;
-    if(retryCount<MAX_RETRY){
-      await sendToRetryTopic("task-update-retry",{
-        ...data,
-        retryCount: retryCount + 1,
-      });
-    }else{
-      await sendToDLQ(
-        'task-update-dlq',data, err);
-    }
-  }
-  }
-  
 
-  export async function handleTaskDelete (data){
-    
-  try{
-    await  prisma.notification.deleteMany({
+    console.log("✅ Notification updated");
+  } catch (err) {
+    console.error(
+      "❌ Failed processing task update:",
+      err.message
+    );
+
+    await handleRetry({
+      retryTopic: "task-update-retry",
+      dlqTopic: "task-update-dlq",
+      data,
+      error: err,
+    });
+  }
+}
+
+export async function handleTaskDelete(data) {
+  try {
+    await prisma.notification.deleteMany({
       where: {
         taskId: data.taskId,
       },
     });
-  
-  }catch(err){
-    console.error("Failed processing: task delete", err.message);
-    const retryCount = data.retryCount || 0;
-    if(retryCount<MAX_RETRY){
-      await sendToRetryTopic("task-delete-retry",{
-        ...data,
-        retryCount: retryCount + 1,
-      });
-    }else{
-      await sendToDLQ('task-delete-dlq',data, err);
-    }
-  }
-  }
-  
 
+    console.log("✅ Notification deleted");
+  } catch (err) {
+    console.error(
+      "❌ Failed processing task delete:",
+      err.message
+    );
+
+    await handleRetry({
+      retryTopic: "task-delete-retry",
+      dlqTopic: "task-delete-dlq",
+      data,
+      error: err,
+    });
+  }
+}
