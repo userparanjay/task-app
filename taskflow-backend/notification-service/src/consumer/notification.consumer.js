@@ -1,6 +1,6 @@
-import prisma from "../prisma/prismaClient.js";
-import { consumer } from "../config/kafka.js";
 
+import { consumer } from "../config/kafka.js";
+import { handleTaskCreated ,handleTaskUpdate,handleTaskDelete} from "../helpers/task.helper.js";
 export const startNotificationConsumer = async () => {
   try {
     await consumer.connect();
@@ -29,13 +29,7 @@ export const startNotificationConsumer = async () => {
              * CREATE notification
              */
             case "task-created":
-              await prisma.notification.create({
-                data: {
-                  taskId: data.taskId,
-                  userId: data.userId,
-                  message: data.message,
-                },
-              });
+              await handleTaskCreated(data)
 
               console.log("✅ Notification created");
               break;
@@ -44,14 +38,8 @@ export const startNotificationConsumer = async () => {
              * UPDATE notification
              */
             case "task-updated":
-              await prisma.notification.updateMany({
-                where: {
-                  taskId: data.taskId,
-                },
-                data: {
-                  message: data.message,
-                },
-              });
+             await handleTaskUpdate(data)
+
 
               console.log("✅ Notification updated");
               break;
@@ -60,12 +48,7 @@ export const startNotificationConsumer = async () => {
              * DELETE notification
              */
             case "task-deleted":
-              await prisma.notification.deleteMany({
-                where: {
-                  taskId: data.taskId,
-                },
-              });
-
+              await handleTaskDelete(data)
               console.log("✅ Notification deleted");
               break;
 
@@ -82,3 +65,5 @@ export const startNotificationConsumer = async () => {
     throw error;
   }
 };
+
+
