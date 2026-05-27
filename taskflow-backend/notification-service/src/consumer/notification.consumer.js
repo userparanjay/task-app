@@ -34,7 +34,7 @@ export const startNotificationConsumer = async () => {
           );
 
           console.log(
-            `📩 Event received: ${topic}`,
+            `📩 Event received: ${topic} ${data}`,
             data
           );
 

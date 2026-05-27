@@ -127,6 +127,28 @@ services:
     networks:
       - backend-network
 
+  # =========================
+  # BullMQ UI (Bull Board)
+  # =========================
+  bullmq-ui:
+    image: deadly0/bull-board:latest
+    container_name: bullmq-ui
+    restart: unless-stopped
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+    ports:
+      - "3001:3000"
+
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+    networks:
+      - backend-network
+
 # =========================
 # Volumes
 # =========================

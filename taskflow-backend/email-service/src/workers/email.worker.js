@@ -3,17 +3,8 @@ import { sendEmail } from "../services/email.service.js";
 import {Worker} from "bullmq"
 
 const worker=new Worker("email-worker",async(job)=>{
-    console.log(job.data,"job recivied")
-    const {
-    to,
-    subject,
-    body,
-  } = job.data;
 
-  console.log(
-    `Sending mail to ${to}`
-  );
- await sendEmail(to,subject,body)
+ await sendEmail(job.data)
 },{
     connection:redis,
     concurrency:5

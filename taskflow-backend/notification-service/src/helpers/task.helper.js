@@ -1,6 +1,7 @@
 import prisma from "../prisma/prismaClient.js";
 import { handleRetry } from "./retry.helper.js";
 import { releaseEvent } from "./idempotency.helper.js";
+import { queueEmail } from "./emailQueue.helper.js";
 
 export async function handleTaskCreated(data) {
   try {
@@ -9,10 +10,14 @@ export async function handleTaskCreated(data) {
       data: {
         taskId: data.taskId,
         userId: data.userId,
-        message: data.message,
+        message: data.message
       },
     });
-
+    await queueEmail({
+      to: data.email,
+      subject: "Task Created",
+      body: data.message,
+    });
     console.log("✅ Notification created");
   } catch (err) {
     await releaseEvent(data.eventId);
@@ -43,6 +48,11 @@ export async function handleTaskUpdate(data) {
     });
 
     console.log("✅ Notification updated");
+    await queueEmail({
+      to: data.email,
+      subject: "Task Updated",
+      body: data.message,
+    });
   } catch (err) {
     await releaseEvent(data.eventId);
 
@@ -69,6 +79,11 @@ export async function handleTaskDelete(data) {
     });
 
     console.log("✅ Notification deleted");
+    await queueEmail({
+      to: data.email,
+      subject: "Task Deleted",
+      body: data.message,
+    });
   } catch (err) {
     await releaseEvent(data.eventId);
 

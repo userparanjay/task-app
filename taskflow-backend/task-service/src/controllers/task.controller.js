@@ -34,6 +34,7 @@ export async function createTask(req, res) {
       taskId: task.id,
       userId: req.user.id,
       title: task.title,
+      email:req.user.email,
       description: task.description,
       status: task.status,
       priority: task.priority,
@@ -197,11 +198,13 @@ export async function updateTask(req, res) {
       },
       data: req.validated,
     });
+   
 
     // Publish Kafka event
     await taskProducer("task-updated",{
       eventId:crypto.randomUUID(),
       taskId: task.id,
+      email:req.user.email,
       userId: task.userId,
       title: task.title,
       description: task.description,
@@ -254,6 +257,7 @@ export async function deleteTask(req, res) {
     await taskProducer("task-deleted",{
       eventId:crypto.randomUUID(),
       taskId: existing.id,
+      email:req.user.email,
       userId: existing.userId,
       message: `Task "${existing.title}" deleted`,
     });
