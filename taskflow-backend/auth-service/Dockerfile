@@ -1,20 +1,17 @@
-# Base image
 FROM node:22-alpine
 
-# Create app directory
 WORKDIR /app
+ENV NODE_ENV=production
 
-# Copy package files first (better cache)
 COPY package*.json ./
+COPY prisma ./prisma
+RUN npm ci
 
-# Install dependencies
-RUN npm ci --omit=dev
-
-# Copy source code
 COPY . .
+RUN if [ -f prisma/schema.prisma ]; then npx prisma generate; fi   && npm prune --omit=dev   && npm cache clean --force
 
-# Expose app port
+RUN addgroup -S app && adduser -S app -G app && chown -R app:app /app
+USER app
+
 EXPOSE 5003
-
-# Start app
 CMD ["npm", "start"]

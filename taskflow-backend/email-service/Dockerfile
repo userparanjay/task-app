@@ -1,20 +1,15 @@
-# Base image
 FROM node:22-alpine
 
-# Create app directory
 WORKDIR /app
+ENV NODE_ENV=production
 
-# Copy package files first (better cache)
 COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
 
-# Install dependencies
-RUN npm ci --omit=dev
-
-# Copy source code
 COPY . .
 
-# Expose app port
-EXPOSE 5006
+RUN addgroup -S app && adduser -S app -G app && chown -R app:app /app
+USER app
 
-# Start app
+EXPOSE 5006
 CMD ["npm", "start"]
