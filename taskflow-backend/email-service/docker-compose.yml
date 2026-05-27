@@ -1,0 +1,32 @@
+# Start root infra first: cd ../../ && npm run infra:up
+services:
+  email-service:
+    build: .
+    container_name: taskflow-email-service
+    restart: unless-stopped
+    ports:
+      - "5006:5006"
+    environment:
+      PORT: 5006
+      NODE_ENV: production
+      KAFKA_BROKER: kafka:29092
+      KAFKA_CLIENT_ID: email-service
+      KAFKA_CONSUMER_GROUP_ID: email-group-v3
+      KAFKA_EMAIL_RETRY_TOPIC: email.retry
+      KAFKA_EMAIL_DLQ_TOPIC: email.dlq
+      KAFKA_EMAIL_MAX_RETRY_ATTEMPTS: 2
+      KAFKA_EMAIL_RETRY_DELAYS_MS: 1000,2000
+      REDIS_URL: redis://redis:6379
+      REDIS_IDEMPOTENCY_KEY_PREFIX: "email:processed:event:"
+      REDIS_IDEMPOTENCY_TTL_SECONDS: 604800
+      EMAIL_SERVICE: ${EMAIL_SERVICE:-gmail}
+      EMAIL_USER: ${EMAIL_USER:-your-email@gmail.com}
+      EMAIL_PASS: ${EMAIL_PASS:-your-app-password}
+      EMAIL_TO: ${EMAIL_TO:-recipient@example.com}
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    external: true
+    name: task-app_backend-network

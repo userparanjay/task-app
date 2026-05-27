@@ -1,0 +1,22 @@
+# Start root infra + backend services first.
+services:
+  api-gateway:
+    build: .
+    container_name: taskflow-api-gateway
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      NODE_ENV: production
+      HTTP_TIMEOUT_MS: 15000
+      AUTH_SERVICE_URL: http://taskflow-auth-service:5003
+      TASK_SERVICE_URL: http://taskflow-task-service:5004
+      NOTIFICATION_SERVICE_URL: http://taskflow-notification-service:5005
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    external: true
+    name: task-app_backend-network

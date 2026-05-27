@@ -1,0 +1,22 @@
+# Start root infra first: cd ../../ && npm run infra:up
+services:
+  auth-service:
+    build: .
+    container_name: taskflow-auth-service
+    restart: unless-stopped
+    ports:
+      - "5003:5003"
+    environment:
+      PORT: 5003
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1d}
+      BCRYPT_SALT_ROUNDS: ${BCRYPT_SALT_ROUNDS:-10}
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/auth_db
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    external: true
+    name: task-app_backend-network

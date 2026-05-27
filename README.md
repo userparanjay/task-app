@@ -36,6 +36,7 @@ This file tracks what is completed from your original production-grade roadmap a
 - [~] In progress
 - [x] Health checks added for Kafka/Postgres/Redis
 - [x] Startup sequencing improved (`infra:up`, `infra:wait`)
+- [x] Per-service `docker-compose.yml` files added (Postgres/Kafka/Redis via shared network)
 - [ ] Split dev vs prod compose files
 - [ ] Centralize env handling (`.env`, `.env.example`, secrets strategy)
 - [ ] Add stable bootstrap for topics/migrations/init jobs
@@ -56,6 +57,38 @@ You have completed the roadmap up to **BullMQ integration** in practical terms:
 - BullMQ worker exists for email jobs
 
 This is a strong intermediate production-architecture baseline.
+
+---
+
+## Run Services With Docker (Per Service)
+
+### 1) Start shared infra once
+
+```bash
+cd /home/developer/Desktop/task-app
+npm run infra:up
+```
+
+This creates network `task-app_backend-network` and Postgres databases:
+- `auth_db`
+- `tasks_db`
+- `notification_db`
+
+### 2) Start each service
+
+```bash
+cd taskflow-backend/auth-service && docker compose up --build
+cd taskflow-backend/task-service && docker compose up --build
+cd taskflow-backend/notification-service && docker compose up --build
+cd taskflow-backend/email-service && docker compose up --build
+cd taskflow-backend/api-gateway && docker compose up --build
+cd taskflow-frontend && docker compose up --build
+```
+
+Inside Docker, services connect using:
+- Postgres: `postgres:5432`
+- Kafka: `kafka:29092`
+- Redis: `redis:6379`
 
 ---
 

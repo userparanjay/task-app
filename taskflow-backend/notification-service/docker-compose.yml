@@ -1,0 +1,27 @@
+# Start root infra first: cd ../../ && npm run infra:up
+services:
+  notification-service:
+    build: .
+    container_name: taskflow-notification-service
+    restart: unless-stopped
+    ports:
+      - "5005:5005"
+    environment:
+      PORT: 5005
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/notification_db
+      KAFKA_BROKER: kafka:29092
+      KAFKA_CLIENT_ID: notification-service
+      KAFKA_CONSUMER_GROUP_ID: notification-group
+      KAFKA_MAX_RETRY: 3
+      REDIS_URL: redis://redis:6379
+      REDIS_IDEMPOTENCY_KEY_PREFIX: "notification:processed:event:"
+      REDIS_IDEMPOTENCY_TTL_SECONDS: 604800
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    external: true
+    name: task-app_backend-network
