@@ -1,12 +1,15 @@
 import "dotenv/config";
 import { Kafka } from "kafkajs";
+import { requireEnv, validateKafkaEnv } from "./env.js";
+
+validateKafkaEnv();
 
 export const kafka = new Kafka({
-  clientId: process.env.KAFKA_CLIENT_ID,
-  brokers: [process.env.KAFKA_BROKER],
+  clientId: requireEnv("KAFKA_CLIENT_ID"),
+  brokers: [requireEnv("KAFKA_BROKER")],
 });
 
 export const producer = kafka.producer();
 export const consumer = kafka.consumer({
-  groupId: process.env.KAFKA_CONSUMER_GROUP_ID,
+  groupId: requireEnv("KAFKA_CONSUMER_GROUP_ID"),
 });

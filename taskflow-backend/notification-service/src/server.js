@@ -21,6 +21,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
+import { validateKafkaEnv, validateRedisEnv } from "./config/env.js";
 import { connectDatabase } from "./prisma/prismaClient.js";
 import { connectRedis } from "./config/redis.js";
 
@@ -60,6 +61,9 @@ const PORT = process.env.PORT;
  */
 async function startServer() {
   try {
+    validateKafkaEnv();
+    validateRedisEnv();
+
     // Connect Prisma/Postgres
     await connectDatabase();
     await connectRedis();

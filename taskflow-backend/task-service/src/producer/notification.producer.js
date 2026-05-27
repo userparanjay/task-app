@@ -1,8 +1,7 @@
-import { producer } from "../config/kafka.js";
+import { producer, connectProducer } from "../config/kafka.js";
 
-await producer.connect();
-
-export const taskProducer = async (topic,payload) => {
+export const taskProducer = async (topic, payload) => {
+  await connectProducer();
 
   await producer.send({
     topic: topic,
@@ -14,5 +13,5 @@ export const taskProducer = async (topic,payload) => {
     ],
   });
 
-  console.log( "task created notification sent to Kafka" );
+  console.log("task created notification sent to Kafka");
 };

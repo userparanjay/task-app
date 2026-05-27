@@ -1,4 +1,6 @@
-import { consumer ,producer} from "../config/kafka.js";
+import { consumer, producer } from "../config/kafka.js";
+import { ensureTopics } from "../config/ensureTopics.js";
+import { TASK_TOPICS } from "../config/kafkaTopics.js";
 
 import {
   handleTaskCreated,
@@ -9,19 +11,11 @@ import { claimEvent } from "../helpers/idempotency.helper.js";
 
 export const startNotificationConsumer = async () => {
   try {
+    await ensureTopics();
     await consumer.connect();
     await producer.connect()
     await consumer.subscribe({
-      topics: [
-        "task-created",
-        "task-updated",
-        "task-deleted",
-
-        // retry topics
-        "task-create-retry",
-        "task-update-retry",
-        "task-delete-retry",
-      ],
+      topics: TASK_TOPICS,
       fromBeginning: false,
     });
 

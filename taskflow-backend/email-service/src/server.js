@@ -1,5 +1,7 @@
 import "dotenv/config";
+import "./workers/email.worker.js";
 import express from "express";
+import { validateKafkaEnv, validateRedisEnv } from "./config/env.js";
 import { startEmailConsumer } from "./consumer/email.consumer.js";
 import { connectRedis } from "./config/redis.js";
 
@@ -8,8 +10,10 @@ const app = express();
 app.use(express.json());
 
 async function startServer() {
+  validateKafkaEnv();
+  validateRedisEnv();
   await connectRedis();
-  await startEmailConsumer();
+  // await startEmailConsumer();
 
   app.listen(process.env.PORT, () => {
     console.log(

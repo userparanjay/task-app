@@ -13,6 +13,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { connectDatabase } from "./prisma/prismaClient.js";
+import { connectProducer } from "./config/kafka.js";
 import taskRoutes from "./routes/task.routes.js";
 
 const app = express();
@@ -31,6 +32,7 @@ const PORT = process.env.PORT;
 async function startServer() {
   try {
     await connectDatabase();
+    await connectProducer();
 
     app.listen(PORT, () => {
       console.log(`Task service running on http://localhost:${PORT}`);
