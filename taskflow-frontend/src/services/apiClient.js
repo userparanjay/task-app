@@ -12,6 +12,7 @@ import { STORAGE_KEYS } from '../constants';
 import { storage } from '../utils/storage';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
+console.log("API URL:", import.meta.env.VITE_API_BASE_URL);
 
 export const apiClient = axios.create({
   baseURL,

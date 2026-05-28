@@ -7,8 +7,10 @@ dist
 build
 coverage
 
-.env
-.env.*
+# Remove these lines
+# .env
+# .env.*
+
 !.env.example
 
 .git
