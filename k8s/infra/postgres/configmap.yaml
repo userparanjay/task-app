@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-sql
+  namespace: taskflow
+
+data:
+  init.sql: |
+    CREATE DATABASE auth_db;
+    CREATE DATABASE tasks_db;
