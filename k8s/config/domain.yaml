@@ -1,0 +1,12 @@
+# Change APP_DOMAIN here, then update the same host in ingress.yaml and /etc/hosts
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: taskflow-domain
+  namespace: taskflow
+data:
+  APP_DOMAIN: "taskflow.local"
+  API_URL: "http://taskflow.local/api"
+  APP_URL: "http://taskflow.local"
+  KAFKA_UI_HOST: "kafka.taskflow.local"
+  BULLMQ_UI_HOST: "bullmq.taskflow.local"

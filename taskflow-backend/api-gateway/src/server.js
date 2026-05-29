@@ -17,8 +17,15 @@ import taskRoutes from "./routes/task.routes.js";
 
 const app = express();
 
-// Allow React app (port 3000) to call this gateway
-app.use(cors());
+// Allow frontend on taskflow.local (or comma-separated CORS_ORIGIN)
+const corsOrigin = process.env.CORS_ORIGIN;
+app.use(
+  cors(
+    corsOrigin
+      ? { origin: corsOrigin.split(",").map((o) => o.trim()), credentials: true }
+      : undefined,
+  ),
+);
 
 // Parse JSON body from client
 app.use(express.json());

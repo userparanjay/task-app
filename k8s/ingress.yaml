@@ -1,12 +1,16 @@
-# Exposes frontend + API on one host (enable ingress addon on minikube)
+# One domain for UI + API (no localhost). Point DNS or /etc/hosts to your Ingress IP.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: taskflow-ingress
   namespace: taskflow
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
   rules:
+    # Main app — http://taskflow.local
     - host: taskflow.local
       http:
         paths:
@@ -24,3 +28,27 @@ spec:
                 name: frontend
                 port:
                   number: 80
+
+    # Kafka UI — http://kafka.taskflow.local
+    - host: kafka.taskflow.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kafka-ui
+                port:
+                  number: 8080
+
+    # Bull Board — http://bullmq.taskflow.local
+    - host: bullmq.taskflow.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bullmq-ui
+                port:
+                  number: 3000

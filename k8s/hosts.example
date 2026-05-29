@@ -1,0 +1,7 @@
+# Add these lines to /etc/hosts (replace MINIKUBE_IP with: minikube ip)
+# Linux/Mac: sudo nano /etc/hosts
+# Windows: C:\Windows\System32\drivers\etc\hosts
+#
+# MINIKUBE_IP taskflow.local
+# MINIKUBE_IP kafka.taskflow.local
+# MINIKUBE_IP bullmq.taskflow.local
