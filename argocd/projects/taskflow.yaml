@@ -1,0 +1,24 @@
+# AppProject — limits what taskflow apps can deploy
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: taskflow
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Taskflow microservices stack
+  sourceRepos:
+    - https://github.com/userparanjay/task-app.git
+    - https://github.com/userparanjay/task-app  # allow with/without .git
+  destinations:
+    - namespace: taskflow
+      server: https://kubernetes.default.svc
+  # Allow Ingress, PVC, etc. in taskflow namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  # Namespace object lives in k8s/namespace.yaml
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace

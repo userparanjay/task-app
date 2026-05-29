@@ -2,6 +2,8 @@
 
 Deploy the full stack (infra + microservices + frontend).
 
+**GitOps (Argo CD):** see [argocd/README.md](../argocd/README.md) to sync this folder from Git automatically.
+
 ## Domain access (recommended — no localhost)
 
 Default domain: **`taskflow.local`**

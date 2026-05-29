@@ -1,0 +1,23 @@
+# App-of-apps — deploys all Applications in argocd/applications/
+# Apply once after Argo CD is installed: kubectl apply -f argocd/applications/root.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: taskflow-root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/userparanjay/task-app.git
+    targetRevision: master
+    path: argocd/applications
+    # Uses argocd/applications/kustomization.yaml (excludes this root app)
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

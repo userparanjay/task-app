@@ -1,0 +1,26 @@
+# One-shot DB tables — sync manually or once after postgres is up
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: taskflow-db-migrate
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: taskflow
+  source:
+    repoURL: https://github.com/userparanjay/task-app.git
+    targetRevision: master
+    path: k8s/jobs
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: taskflow
+  syncPolicy:
+    # Manual by default — avoids re-running Job every auto-sync
+    syncOptions:
+      - CreateNamespace=true
+  # Uncomment to auto-sync jobs (SQL uses IF NOT EXISTS, safe to re-run)
+  # syncPolicy:
+  #   automated:
+  #     prune: true
+  #     selfHeal: true

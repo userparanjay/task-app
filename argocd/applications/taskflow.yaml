@@ -1,0 +1,39 @@
+# Main app — syncs k8s/ (Kustomize) into namespace taskflow
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: taskflow
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    # Run DB schema job after main resources (see taskflow-db-migrate app)
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: taskflow
+  source:
+    repoURL: https://github.com/userparanjay/task-app.git
+    targetRevision: master
+    path: k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: taskflow
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=false
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+  ignoreDifferences:
+    # Jobs are managed by the db-migrate Application
+    - group: batch
+      kind: Job
+      jsonPointers:
+        - /status
