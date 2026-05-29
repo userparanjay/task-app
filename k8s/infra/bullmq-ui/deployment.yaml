@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bullmq-ui
+  namespace: taskflow
+  labels:
+    app: bullmq-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bullmq-ui
+  template:
+    metadata:
+      labels:
+        app: bullmq-ui
+    spec:
+      containers:
+        - name: bullmq-ui
+          image: deadly0/bull-board:latest # same as compose
+          ports:
+            - containerPort: 3000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: bullmq-ui-config
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10

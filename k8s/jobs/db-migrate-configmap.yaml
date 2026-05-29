@@ -1,0 +1,47 @@
+# One-time schema for empty K8s Postgres DBs (matches Prisma migrations in each service)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-migrate-sql
+  namespace: taskflow
+data:
+  auth_db.sql: |
+    CREATE TABLE IF NOT EXISTS "users" (
+        "id" UUID NOT NULL,
+        "name" TEXT NOT NULL,
+        "email" TEXT NOT NULL,
+        "password" TEXT NOT NULL,
+        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS "users_email_key" ON "users"("email");
+
+  tasks_db.sql: |
+    DO $$ BEGIN
+        CREATE TYPE "TaskStatus" AS ENUM ('TODO', 'IN_PROGRESS', 'COMPLETED');
+    EXCEPTION WHEN duplicate_object THEN null; END $$;
+    DO $$ BEGIN
+        CREATE TYPE "TaskPriority" AS ENUM ('LOW', 'MEDIUM', 'HIGH');
+    EXCEPTION WHEN duplicate_object THEN null; END $$;
+    CREATE TABLE IF NOT EXISTS "tasks" (
+        "id" UUID NOT NULL,
+        "title" TEXT NOT NULL,
+        "description" TEXT NOT NULL,
+        "status" "TaskStatus" NOT NULL DEFAULT 'TODO',
+        "priority" "TaskPriority" NOT NULL DEFAULT 'MEDIUM',
+        "user_id" UUID NOT NULL,
+        "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updated_at" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "tasks_pkey" PRIMARY KEY ("id")
+    );
+
+  notification_db.sql: |
+    CREATE TABLE IF NOT EXISTS "notifications" (
+        "id" SERIAL NOT NULL,
+        "taskId" TEXT NOT NULL,
+        "message" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
+    );

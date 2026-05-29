@@ -1,0 +1,16 @@
+# port-forward 3001:3000 to match compose host port 3001
+apiVersion: v1
+kind: Service
+metadata:
+  name: bullmq-ui
+  namespace: taskflow
+  labels:
+    app: bullmq-ui
+spec:
+  type: ClusterIP
+  selector:
+    app: bullmq-ui
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000

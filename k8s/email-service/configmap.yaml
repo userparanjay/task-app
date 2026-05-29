@@ -1,0 +1,20 @@
+# Non-secret env — mirrors email-service docker-compose
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: email-service-config
+  namespace: taskflow
+data:
+  PORT: "5006"
+  NODE_ENV: "production"
+  KAFKA_BROKER: "kafka:9092"
+  KAFKA_CLIENT_ID: "email-service"
+  KAFKA_CONSUMER_GROUP_ID: "email-group-v3"
+  KAFKA_EMAIL_RETRY_TOPIC: "email.retry"
+  KAFKA_EMAIL_DLQ_TOPIC: "email.dlq"
+  KAFKA_EMAIL_MAX_RETRY_ATTEMPTS: "2"
+  KAFKA_EMAIL_RETRY_DELAYS_MS: "1000,2000"
+  REDIS_URL: "redis://redis-service:6379"
+  REDIS_IDEMPOTENCY_KEY_PREFIX: "email:processed:event:"
+  REDIS_IDEMPOTENCY_TTL_SECONDS: "604800"
+  EMAIL_SERVICE: "gmail" # override via secret or edit for prod

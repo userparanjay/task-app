@@ -1,32 +1,41 @@
+# Auth microservice — mirrors taskflow-backend/auth-service docker-compose
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: auth-service
   namespace: taskflow
-
+  labels:
+    app: auth-service
 spec:
   replicas: 1
-
   selector:
     matchLabels:
       app: auth-service
-
   template:
     metadata:
       labels:
         app: auth-service
-
     spec:
       containers:
         - name: auth-service
-          image: pnajan/taskflow-auth-service:v1
-
+          image: pnajan/taskflow-auth-service:v1 # build/push from auth-service/
           ports:
             - containerPort: 5003
-
+              name: http
           envFrom:
             - configMapRef:
                 name: auth-service-config
-
             - secretRef:
                 name: auth-service-secret
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5003
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5003
+            initialDelaySeconds: 30
+            periodSeconds: 20

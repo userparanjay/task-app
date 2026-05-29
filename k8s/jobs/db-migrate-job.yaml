@@ -1,0 +1,35 @@
+# Run after postgres is up: kubectl apply -f k8s/jobs/ && kubectl wait job/db-migrate -n taskflow --for=condition=complete --timeout=120s
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrate
+  namespace: taskflow
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: postgres:16-alpine
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              psql -h postgres-service -U postgres -d auth_db -f /sql/auth_db.sql
+              psql -h postgres-service -U postgres -d tasks_db -f /sql/tasks_db.sql
+              psql -h postgres-service -U postgres -d notification_db -f /sql/notification_db.sql
+              echo "Migrations applied."
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: sql
+              mountPath: /sql
+      volumes:
+        - name: sql
+          configMap:
+            name: db-migrate-sql

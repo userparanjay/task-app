@@ -1,14 +1,12 @@
+# Non-secret env — mirrors task-service docker-compose
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: task-service-config
   namespace: taskflow
-
 data:
   PORT: "5004"
-  NODE_ENV: "development"
-
+  NODE_ENV: "production"
   DATABASE_URL: "postgresql://postgres:postgres@postgres-service:5432/tasks_db"
-
-  KAFKA_BROKER: "kafka:9092" # cluster Service (K8s uses 9092, not compose 29092)
+  KAFKA_BROKER: "kafka:9092" # kafka Service (K8s); compose used kafka:29092
   KAFKA_CLIENT_ID: "task-service"

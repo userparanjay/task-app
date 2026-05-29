@@ -1,0 +1,9 @@
+# Bull Board — mirrors docker-compose bullmq-ui
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bullmq-ui-config
+  namespace: taskflow
+data:
+  REDIS_HOST: redis-service # compose used hostname "redis"
+  REDIS_PORT: "6379"

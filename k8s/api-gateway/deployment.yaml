@@ -1,29 +1,39 @@
+# API Gateway — single HTTP entry for frontend / external clients
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-gateway
   namespace: taskflow
-
+  labels:
+    app: api-gateway
 spec:
   replicas: 1
-
   selector:
     matchLabels:
       app: api-gateway
-
   template:
     metadata:
       labels:
         app: api-gateway
-
     spec:
       containers:
         - name: api-gateway
           image: pnajan/taskflow-api-gateway:v1
-
           ports:
             - containerPort: 5000
-
+              name: http
           envFrom:
             - configMapRef:
                 name: api-gateway-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 20
+            periodSeconds: 20

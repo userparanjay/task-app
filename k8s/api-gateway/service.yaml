@@ -1,16 +1,16 @@
+# Entry point for API — use Ingress or port-forward to reach from browser
 apiVersion: v1
 kind: Service
 metadata:
   name: api-gateway
   namespace: taskflow
-
+  labels:
+    app: api-gateway
 spec:
+  type: ClusterIP
   selector:
     app: api-gateway
-
   ports:
-    - protocol: TCP
+    - name: http
       port: 5000
       targetPort: 5000
-
-  type: ClusterIP

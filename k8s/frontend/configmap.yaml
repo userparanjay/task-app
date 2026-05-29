@@ -1,8 +1,11 @@
+# Note: Vite bakes API URLs at image build time — this ConfigMap is for reference only.
+# Rebuild frontend with VITE_API_BASE_URL=/api (via Ingress) or your gateway URL.
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: frontend-config
   namespace: taskflow
-
 data:
-  VITE_API_BASE_URL: "http://api-gateway:5000"
+  VITE_API_BASE_URL: "/api"
+  VITE_AUTH_API_URL: "/api/auth"
+  VITE_HTTP_TIMEOUT_MS: "15000"

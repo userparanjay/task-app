@@ -1,0 +1,41 @@
+# Notification microservice — Kafka consumer + Redis idempotency
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: taskflow
+  labels:
+    app: notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: pnajan/taskflow-notification-service:v1 # build/push if missing
+          ports:
+            - containerPort: 5005
+              name: http
+          envFrom:
+            - configMapRef:
+                name: notification-service-config
+            - secretRef:
+                name: notification-service-secret
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5005
+            initialDelaySeconds: 25
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5005
+            initialDelaySeconds: 45
+            periodSeconds: 20

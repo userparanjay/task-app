@@ -1,0 +1,60 @@
+# Apply everything: kubectl apply -k k8s/
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: taskflow
+
+resources:
+  - namespace.yaml
+
+  # Infrastructure
+  - infra/postgres/secret.yaml
+  - infra/postgres/configmap.yaml
+  - infra/postgres/pvc.yaml
+  - infra/postgres/deployment.yaml
+  - infra/postgres/service.yaml
+
+  - infra/redis/pvc.yaml
+  - infra/redis/deployment.yaml
+  - infra/redis/service.yaml
+
+  - infra/kafka/configmap.yaml
+  - infra/kafka/deployment.yaml
+  - infra/kafka/service.yaml
+  - infra/kafka/ui-configmap.yaml
+  - infra/kafka/ui-deployment.yaml
+  - infra/kafka/ui-service.yaml
+
+  - infra/bullmq-ui/configmap.yaml
+  - infra/bullmq-ui/deployment.yaml
+  - infra/bullmq-ui/service.yaml
+
+  # Backend microservices
+  - auth-service/configmap.yaml
+  - auth-service/secret.yaml
+  - auth-service/deployment.yaml
+  - auth-service/service.yaml
+
+  - task-service/configmap.yaml
+  - task-service/secret.yaml
+  - task-service/deployment.yaml
+  - task-service/service.yaml
+
+  - notification-service/configmap.yaml
+  - notification-service/secret.yaml
+  - notification-service/deployment.yaml
+  - notification-service/service.yaml
+
+  - email-service/configmap.yaml
+  - email-service/secret.yaml
+  - email-service/deployment.yaml
+  - email-service/service.yaml
+
+  - api-gateway/configmap.yaml
+  - api-gateway/deployment.yaml
+  - api-gateway/service.yaml
+
+  # Frontend + ingress
+  - frontend/deployment.yaml
+  - frontend/service.yaml
+  - ingress.yaml

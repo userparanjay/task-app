@@ -1,0 +1,40 @@
+# Email worker — Kafka + Redis + SMTP (no /health route in app)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-service
+  namespace: taskflow
+  labels:
+    app: email-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: email-service
+  template:
+    metadata:
+      labels:
+        app: email-service
+    spec:
+      containers:
+        - name: email-service
+          image: pnajan/taskflow-email-service:v1 # rebuild image when possible
+          command: ["node", "src/server.js"] # image CMD broken (npm start missing in published tag)
+          ports:
+            - containerPort: 5006
+              name: http
+          envFrom:
+            - configMapRef:
+                name: email-service-config
+            - secretRef:
+                name: email-service-secret
+          readinessProbe:
+            tcpSocket:
+              port: 5006 # app has no HTTP health endpoint
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 5006
+            initialDelaySeconds: 40
+            periodSeconds: 20

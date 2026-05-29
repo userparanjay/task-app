@@ -1,32 +1,41 @@
+# Task microservice — mirrors task-service docker-compose
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: task-service
   namespace: taskflow
-
+  labels:
+    app: task-service
 spec:
   replicas: 1
-
   selector:
     matchLabels:
       app: task-service
-
   template:
     metadata:
       labels:
         app: task-service
-
     spec:
       containers:
         - name: task-service
           image: pnajan/taskflow-task-service:v1
-
           ports:
             - containerPort: 5004
-
+              name: http
           envFrom:
             - configMapRef:
                 name: task-service-config
-
             - secretRef:
                 name: task-service-secret
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5004
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5004
+            initialDelaySeconds: 40
+            periodSeconds: 20

@@ -1,12 +1,12 @@
+# Non-secret env — mirrors auth-service docker-compose
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: auth-service-config
   namespace: taskflow
-
 data:
-  PORT: "5003"
-  NODE_ENV: "development"
+  PORT: "5003" # container listens here (compose 5003:5003)
+  NODE_ENV: "production"
   JWT_EXPIRES_IN: "1d"
   BCRYPT_SALT_ROUNDS: "10"
-  DATABASE_URL: "postgresql://postgres:postgres@postgres-service:5432/auth_db"
+  DATABASE_URL: "postgresql://postgres:postgres@postgres-service:5432/auth_db" # postgres Service + init DB
