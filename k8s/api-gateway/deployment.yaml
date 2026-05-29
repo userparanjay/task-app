@@ -19,6 +19,7 @@ spec:
       containers:
         - name: api-gateway
           image: pnajan/taskflow-api-gateway:v1
+          imagePullPolicy: Always
           ports:
             - containerPort: 5000
               name: http

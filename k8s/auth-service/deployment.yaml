@@ -18,7 +18,8 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: pnajan/taskflow-auth-service:v1 # build/push from auth-service/
+          image: pnajan/taskflow-auth-service:v1
+          imagePullPolicy: Always
           ports:
             - containerPort: 5003
               name: http

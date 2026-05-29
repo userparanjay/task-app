@@ -19,6 +19,7 @@ spec:
       containers:
         - name: task-service
           image: pnajan/taskflow-task-service:v1
+          imagePullPolicy: Always
           ports:
             - containerPort: 5004
               name: http

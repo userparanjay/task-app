@@ -18,9 +18,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          # Build with: docker build --build-arg VITE_API_BASE_URL=/api -t pnajan/taskflow-fe:v2 taskflow-frontend/
-          image: pnajan/taskflow-fe:v2
-          imagePullPolicy: IfNotPresent
+          image: pnajan/taskflow-fe:v1 # Docker Hub; rebuild with VITE_API_BASE_URL=/api for taskflow.local
+          imagePullPolicy: Always # pull latest digest when you re-push same tag
           ports:
             - containerPort: 80
               name: http

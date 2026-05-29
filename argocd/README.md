@@ -6,6 +6,8 @@ Argo CD watches your Git repo and keeps the cluster in sync with `k8s/`.
 GitHub (task-app)  →  Argo CD  →  Kubernetes (namespace: taskflow)
 ```
 
+**Dockerfile → cluster:** Argo CD does not build images. See [DOCKER-WORKFLOW.md](./DOCKER-WORKFLOW.md) and `scripts/build-and-push-images.sh`.
+
 ## Architecture
 
 | Argo CD resource | Purpose |
