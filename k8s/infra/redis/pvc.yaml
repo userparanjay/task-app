@@ -1,0 +1,12 @@
+# Persistent disk for Redis AOF/RDB — replaces compose volume taskflow_redis_data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data
+  namespace: taskflow
+spec:
+  accessModes:
+    - ReadWriteOnce # one pod mounts /data
+  resources:
+    requests:
+      storage: 2Gi # queues/cache; smaller than postgres is usually fine

@@ -1,0 +1,53 @@
+# Redis server — mirrors docker-compose redis service (BullMQ / idempotency)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: taskflow
+  labels:
+    app: redis
+spec:
+  replicas: 1 # single redis instance (compose also runs one)
+  strategy:
+    type: Recreate # one writer on RWO volume
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis # must match Service selector
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine # same image as compose
+          command:
+            - redis-server
+            - --appendonly
+            - "yes" # AOF persistence (same as compose command)
+          ports:
+            - containerPort: 6379
+              name: redis
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data # redis default data dir for AOF files
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping # same as compose healthcheck
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 10
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 10
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-data # durable queue/cache data across restarts

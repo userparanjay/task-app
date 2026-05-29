@@ -1,10 +1,12 @@
+# SQL run once on empty data dir — mirrors docker/postgres/init-databases.sql
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgres-init-sql
   namespace: taskflow
-
 data:
-  init.sql: |
+  # filename must match subPath in deployment mount
+  01-init-databases.sql: |
     CREATE DATABASE auth_db;
     CREATE DATABASE tasks_db;
+    CREATE DATABASE notification_db;

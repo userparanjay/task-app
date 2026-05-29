@@ -1,0 +1,12 @@
+# Persistent disk for Postgres data — replaces compose volume taskflow_auth_data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: taskflow
+spec:
+  accessModes:
+    - ReadWriteOnce # one pod can mount read/write (single postgres replica)
+  resources:
+    requests:
+      storage: 5Gi # adjust if you need more DB space
