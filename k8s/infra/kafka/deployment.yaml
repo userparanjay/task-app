@@ -1,0 +1,65 @@
+# Kafka broker (KRaft) — mirrors docker-compose kafka service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+  namespace: taskflow
+  labels:
+    app: kafka
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      # CRITICAL: Service named "kafka" injects KAFKA_PORT env → Confluent image exits 1
+      enableServiceLinks: false
+      containers:
+        - name: kafka
+          image: confluentinc/cp-kafka:7.4.0
+          ports:
+            - containerPort: 9092
+              name: plaintext
+            - containerPort: 9093
+              name: controller
+          envFrom:
+            - configMapRef:
+                name: kafka-config
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /var/lib/kafka/data
+          startupProbe:
+            tcpSocket:
+              port: 9092 # lightweight while JVM + KRaft format on first boot
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30 # up to ~5 min before liveness kicks in
+          readinessProbe:
+            tcpSocket:
+              port: 9092
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: 9092 # avoid heavy exec probe timeouts under CPU pressure
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests:
+              memory: 512Mi
+              cpu: 250m
+            limits:
+              memory: 1Gi
+              cpu: 1000m
+      volumes:
+        - name: kafka-data
+          emptyDir: {}

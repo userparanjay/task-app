@@ -1,0 +1,9 @@
+# Kafka UI — mirrors docker-compose kafka-ui environment
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-ui-config
+  namespace: taskflow
+data:
+  KAFKA_CLUSTERS_0_NAME: local # display name in UI
+  KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092 # cluster Service (simplified from compose 29092)

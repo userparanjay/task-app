@@ -1,0 +1,16 @@
+# Kafka UI — browse topics; compose exposed host port 8081
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-ui
+  namespace: taskflow
+  labels:
+    app: kafka-ui
+spec:
+  type: ClusterIP # kubectl port-forward -n taskflow svc/kafka-ui 8081:8080
+  selector:
+    app: kafka-ui
+  ports:
+    - name: http
+      port: 8080 # container port (compose maps host 8081 -> 8080)
+      targetPort: 8080

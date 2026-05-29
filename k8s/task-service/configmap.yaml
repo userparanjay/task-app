@@ -10,5 +10,5 @@ data:
 
   DATABASE_URL: "postgresql://postgres:postgres@postgres-service:5432/tasks_db"
 
-  KAFKA_BROKER: "kafka:9092"
+  KAFKA_BROKER: "kafka:9092" # cluster Service (K8s uses 9092, not compose 29092)
   KAFKA_CLIENT_ID: "task-service"
