@@ -1,20 +1,5 @@
 /**
  * server.js — Notification Service entry point (port 5005)
- *
- * Microservice responsibilities:
- * - Own PostgreSQL database (notification_db)
- * - Save notifications
- * - Verify JWT for protected APIs
- *
- * Does NOT:
- * - Store user passwords
- * - Access auth database
- * - Use Kafka (yet)
- *
- * Later:
- * Task Service → HTTP call → Notification Service
- * Then:
- * Task Service → Kafka → Notification Service
  */
 
 import "dotenv/config";
@@ -27,20 +12,20 @@ import { connectRedis } from "./config/redis.js";
 
 import notificationRoutes from "./routes/notification.routes.js";
 import { startNotificationConsumer } from "./consumer/notification.consumer.js";
-import { registerMetricsMiddleware, registerMetricsRoute } from "./metrics.js";
+import { registerRequestLogger, logger } from "./utils/logger/logger.js";
+import {
+  registerMetricsMiddleware,
+  registerMetricsRoute,
+} from "./utils/metrics/metrics.js";
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 registerMetricsMiddleware(app);
+registerRequestLogger(app);
 registerMetricsRoute(app);
 
-/**
- * Health check
- * Used to verify service is running
- */
 app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
@@ -48,43 +33,26 @@ app.get("/health", (_req, res) => {
   });
 });
 
-/**
- * Notification routes
- *
- * Example:
- * POST /notifications
- * GET /notifications
- */
 app.use("/notifications", notificationRoutes);
 
 const PORT = process.env.PORT;
 
-/**
- * Start server only after DB connection
- */
 async function startServer() {
   try {
     validateKafkaEnv();
     validateRedisEnv();
 
-    // Connect Prisma/Postgres
     await connectDatabase();
     await connectRedis();
-
     await startNotificationConsumer();
 
-  
     app.listen(PORT, () => {
-      console.log(
-        `Notification service running on http://localhost:${PORT}`
-      );
+      logger.info("Notification service started", { port: PORT });
     });
   } catch (error) {
-    console.error(
-      "Failed to start notification-service:",
-      error.message
-    );
-
+    logger.error("Failed to start notification-service", {
+      error: error.message,
+    });
     process.exit(1);
   }
 }

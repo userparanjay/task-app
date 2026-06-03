@@ -5,7 +5,7 @@ import MockAdapter from "axios-mock-adapter";
 import {
   fireWithCircuitBreaker,
   resetCircuitBreakers,
-} from "../src/utils/circuitBreaker.js";
+} from "../src/utils/circuitbreaker/circuitBreaker.js";
 
 describe("circuit breaker", () => {
   let mock;

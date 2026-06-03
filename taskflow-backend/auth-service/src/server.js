@@ -3,13 +3,18 @@ import express from "express";
 import cors from "cors";
 import { connectDatabase } from "./config/prisma.js";
 import authRoutes from "./routes/auth.routes.js";
-import { registerMetricsMiddleware, registerMetricsRoute } from "./metrics.js";
+import { registerRequestLogger, logger } from "./utils/logger/logger.js";
+import {
+  registerMetricsMiddleware,
+  registerMetricsRoute,
+} from "./utils/metrics/metrics.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 registerMetricsMiddleware(app);
+registerRequestLogger(app);
 registerMetricsRoute(app);
 app.use("/", authRoutes);
 
@@ -20,11 +25,10 @@ async function startServer() {
     await connectDatabase();
 
     app.listen(PORT, () => {
-      console.log(`Auth service running on http://localhost:${PORT}`);
+      logger.info("Auth service started", { port: PORT });
     });
   } catch (error) {
-    console.error("Failed to start server:", error.message);
-    console.error("Is PostgreSQL running? Check DATABASE_URL in .env");
+    logger.error("Failed to start server", { error: error.message });
     process.exit(1);
   }
 }

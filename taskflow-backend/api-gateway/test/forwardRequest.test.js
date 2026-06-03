@@ -2,8 +2,8 @@ import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
-import { forwardRequest } from "../src/utils/forwardRequest.js";
-import { resetCircuitBreakers } from "../src/utils/circuitBreaker.js";
+import { forwardRequest } from "../src/utils/circuitbreaker/forwardRequest.js";
+import { resetCircuitBreakers } from "../src/utils/circuitbreaker/circuitBreaker.js";
 
 function createMockRes() {
   const res = {

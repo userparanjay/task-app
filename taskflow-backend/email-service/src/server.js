@@ -2,14 +2,18 @@ import "dotenv/config";
 import "./workers/email.worker.js";
 import express from "express";
 import { validateKafkaEnv, validateRedisEnv } from "./config/env.js";
-import { startEmailConsumer } from "./consumer/email.consumer.js";
 import { connectRedis } from "./config/redis.js";
-import { registerMetricsMiddleware, registerMetricsRoute } from "./metrics.js";
+import { registerRequestLogger, logger } from "./utils/logger/logger.js";
+import {
+  registerMetricsMiddleware,
+  registerMetricsRoute,
+} from "./utils/metrics/metrics.js";
 
 const app = express();
 
 app.use(express.json());
 registerMetricsMiddleware(app);
+registerRequestLogger(app);
 registerMetricsRoute(app);
 
 app.get("/health", (_req, res) => {
@@ -20,16 +24,13 @@ async function startServer() {
   validateKafkaEnv();
   validateRedisEnv();
   await connectRedis();
-  // await startEmailConsumer();
 
   app.listen(process.env.PORT, () => {
-    console.log(
-      `Email service running on http://localhost:${process.env.PORT}`
-    );
+    logger.info("Email service started", { port: process.env.PORT });
   });
 }
 
 startServer().catch((error) => {
-  console.error("Failed to start email-service:", error.message);
+  logger.error("Failed to start email-service", { error: error.message });
   process.exit(1);
 });

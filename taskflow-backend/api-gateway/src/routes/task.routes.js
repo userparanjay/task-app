@@ -3,7 +3,7 @@
  */
 
 import { Router } from "express";
-import { forwardRequest } from "../utils/forwardRequest.js";
+import { forwardRequest } from "../utils/circuitbreaker/forwardRequest.js";
 
 const router = Router();
 

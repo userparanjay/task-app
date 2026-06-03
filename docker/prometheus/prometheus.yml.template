@@ -1,6 +1,5 @@
 # Prometheus for local Docker Compose.
-# Scrape via host IP (services publish ports 5000, 5003–5006).
-# Update HOST_IP if your machine address changes.
+# HOST_IP is substituted from docker/prometheus/.env at container start.
 
 global:
   scrape_interval: 15s
@@ -17,34 +16,34 @@ scrape_configs:
   - job_name: api-gateway
     metrics_path: /meterics
     static_configs:
-      - targets: ["192.168.21.186:5000"]
+      - targets: ["${HOST_IP}:5000"]
         labels:
           service: api-gateway
 
   - job_name: auth-service
     metrics_path: /meterics
     static_configs:
-      - targets: ["192.168.21.186:5003"]
+      - targets: ["${HOST_IP}:5003"]
         labels:
           service: auth-service
 
   - job_name: task-service
     metrics_path: /meterics
     static_configs:
-      - targets: ["192.168.21.186:5004"]
+      - targets: ["${HOST_IP}:5004"]
         labels:
           service: task-service
 
   - job_name: notification-service
     metrics_path: /meterics
     static_configs:
-      - targets: ["192.168.21.186:5005"]
+      - targets: ["${HOST_IP}:5005"]
         labels:
           service: notification-service
 
   - job_name: email-service
     metrics_path: /meterics
     static_configs:
-      - targets: ["192.168.21.186:5006"]
+      - targets: ["${HOST_IP}:5006"]
         labels:
           service: email-service

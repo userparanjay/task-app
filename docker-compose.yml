@@ -157,16 +157,40 @@ services:
     container_name: taskflow-prometheus
     restart: unless-stopped
 
+    env_file:
+      - ./docker/prometheus/.env
+
     ports:
       - "9090:9090"
 
     volumes:
-      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/prometheus/prometheus.yml.template:/etc/prometheus/prometheus.yml.template:ro
+      - ./docker/prometheus/entrypoint.sh:/etc/prometheus/entrypoint.sh:ro
       - taskflow_prometheus_data:/prometheus
 
+    entrypoint: ["/bin/sh", "/etc/prometheus/entrypoint.sh"]
     command:
-      - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
+
+    networks:
+      - backend-network
+
+  # =========================
+  # Loki (log aggregation)
+  # =========================
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: taskflow-loki
+    restart: unless-stopped
+
+    ports:
+      - "3100:3100"
+
+    volumes:
+      - ./docker/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - taskflow_loki_data:/loki
+
+    command: -config.file=/etc/loki/loki-config.yml
 
     networks:
       - backend-network
@@ -181,6 +205,7 @@ services:
 
     depends_on:
       - prometheus
+      - loki
 
     ports:
       - "3002:3000"
@@ -203,6 +228,7 @@ volumes:
   taskflow_auth_data:
   taskflow_redis_data:
   taskflow_prometheus_data:
+  taskflow_loki_data:
   taskflow_grafana_data:
 
 # =========================
