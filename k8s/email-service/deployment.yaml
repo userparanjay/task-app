@@ -1,4 +1,4 @@
-# Email worker — Kafka + Redis + SMTP (no /health route in app)
+# Email worker — Kafka + Redis + SMTP
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,12 +30,14 @@ spec:
             - secretRef:
                 name: email-service-secret
           readinessProbe:
-            tcpSocket:
-              port: 5006 # app has no HTTP health endpoint
+            httpGet:
+              path: /health
+              port: 5006
             initialDelaySeconds: 20
             periodSeconds: 10
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /health
               port: 5006
             initialDelaySeconds: 40
             periodSeconds: 20

@@ -1,7 +1,5 @@
 # Prometheus scrape configuration for the taskflow namespace.
 # Mount as prometheus.yml in a Prometheus Deployment (e.g. ConfigMap subPath).
-#
-# In-cluster DNS targets assume Prometheus runs in namespace: taskflow
 
 global:
   scrape_interval: 15s
@@ -11,20 +9,45 @@ global:
     environment: local
 
 scrape_configs:
-  # Prometheus self-monitoring
   - job_name: prometheus
     static_configs:
       - targets: ["localhost:9090"]
 
-  # API Gateway — prom-client default + process metrics (path matches app typo)
   - job_name: api-gateway
     metrics_path: /meterics
     static_configs:
-      - targets: ["192.168.21.186:5000","192.168.21.186:5001","192.168.21.186:5002","192.168.21.186:5003","192.168.21.186:5004","192.168.21.186:5005","192.168.21.186:3000","192.168.21.186:5006"]
+      - targets: ["api-gateway:5000"]
         labels:
           service: api-gateway
 
-  # Pods annotated with prometheus.io/scrape=true
+  - job_name: auth-service
+    metrics_path: /meterics
+    static_configs:
+      - targets: ["auth-service:5003"]
+        labels:
+          service: auth-service
+
+  - job_name: task-service
+    metrics_path: /meterics
+    static_configs:
+      - targets: ["task-service:5004"]
+        labels:
+          service: task-service
+
+  - job_name: notification-service
+    metrics_path: /meterics
+    static_configs:
+      - targets: ["notification-service:5005"]
+        labels:
+          service: notification-service
+
+  - job_name: email-service
+    metrics_path: /meterics
+    static_configs:
+      - targets: ["email-service:5006"]
+        labels:
+          service: email-service
+
   - job_name: kubernetes-pods
     kubernetes_sd_configs:
       - role: pod

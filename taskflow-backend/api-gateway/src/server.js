@@ -4,17 +4,11 @@
 
 import "dotenv/config";
 import app from "./app.js";
-import client from "prom-client"
+import { registerMetricsRoute } from "./metrics.js";
 
 const PORT = process.env.PORT;
 
-const collectDefaultMeteric=client.collectDefaultMetrics
-collectDefaultMeteric({register:client.register})
-app.get('/meterics',async(req,res)=>{
-  res.setHeader('Content-Type',client.register.contentType)
-  const meterics=await client.register.metrics()
-  res.send(meterics)
-})
+registerMetricsRoute(app);
 
 app.listen(PORT, () => {
   console.log(`API Gateway running on http://localhost:${PORT}`);

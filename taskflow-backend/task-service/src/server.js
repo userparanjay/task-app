@@ -15,11 +15,14 @@ import cors from "cors";
 import { connectDatabase } from "./prisma/prismaClient.js";
 import { connectProducer } from "./config/kafka.js";
 import taskRoutes from "./routes/task.routes.js";
+import { registerMetricsMiddleware, registerMetricsRoute } from "./metrics.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+registerMetricsMiddleware(app);
+registerMetricsRoute(app);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", service: "task-service" });

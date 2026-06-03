@@ -27,12 +27,15 @@ import { connectRedis } from "./config/redis.js";
 
 import notificationRoutes from "./routes/notification.routes.js";
 import { startNotificationConsumer } from "./consumer/notification.consumer.js";
+import { registerMetricsMiddleware, registerMetricsRoute } from "./metrics.js";
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+registerMetricsMiddleware(app);
+registerMetricsRoute(app);
 
 /**
  * Health check
