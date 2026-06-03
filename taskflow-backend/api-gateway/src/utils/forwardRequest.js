@@ -3,9 +3,13 @@
  *
  * The gateway does NOT use Prisma or PostgreSQL.
  * It only passes the request along and returns the service response.
+ * Uses a per-service circuit breaker with fallback when the circuit is open.
  */
 
-import axios from "axios";
+import {
+  fireWithCircuitBreaker,
+  UpstreamServiceError,
+} from "./circuitBreaker.js";
 
 /**
  * Forward request to auth-service (or any service base URL).
@@ -16,33 +20,42 @@ import axios from "axios";
  * @param {string} options.baseUrl  - e.g. http://localhost:5003
  * @param {string} options.method   - GET, POST, ...
  * @param {string} options.path     - e.g. /login
+ * @param {string} [options.serviceName] - label for logs and fallback messages
  */
-export async function forwardRequest(req, res, { baseUrl, method, path, serviceName = "Service" }) {
-  try {
-    const headers = {
-      "Content-Type": "application/json",
-    };
+export async function forwardRequest(
+  req,
+  res,
+  { baseUrl, method, path, serviceName = "Service" },
+) {
+  const headers = {
+    "Content-Type": "application/json",
+  };
 
-    // Forward JWT for protected routes
-    if (req.headers.authorization) {
-      headers.Authorization = req.headers.authorization;
+  if (req.headers.authorization) {
+    headers.Authorization = req.headers.authorization;
+  }
+
+  const config = {
+    method,
+    url: `${baseUrl}${path}`,
+    data: req.body,
+    headers,
+    params: req.query,
+    timeout: Number(process.env.HTTP_TIMEOUT_MS),
+  };
+
+  try {
+    const result = await fireWithCircuitBreaker(serviceName, config);
+
+    if (result?._circuitFallback) {
+      return res.status(503).json(result.body);
     }
 
-    const response = await axios({
-      method,
-      url: `${baseUrl}${path}`,
-      data: req.body,
-      headers,
-      params: req.query,
-      timeout: Number(process.env.HTTP_TIMEOUT_MS),
-      validateStatus: () => true,
-    });
-
-    return res.status(response.status).json(response.data);
+    return res.status(result.status).json(result.data);
   } catch (error) {
     console.error(`Gateway → ${baseUrl}${path} failed:`, error.message);
 
-    if (error.code === "ECONNREFUSED" || error.code === "ERR_NETWORK") {
+    if (error instanceof UpstreamServiceError || isUnavailableError(error)) {
       return res.status(503).json({
         success: false,
         message: `${serviceName} is unavailable. Check that it is running.`,
@@ -54,4 +67,12 @@ export async function forwardRequest(req, res, { baseUrl, method, path, serviceN
       message: "Gateway error while forwarding request",
     });
   }
+}
+
+function isUnavailableError(error) {
+  return (
+    error.code === "ECONNREFUSED" ||
+    error.code === "ERR_NETWORK" ||
+    (error.isAxiosError && !error.response)
+  );
 }

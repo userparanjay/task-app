@@ -26,6 +26,20 @@ AUTH_SERVICE_URL=http://localhost:5003
 TASK_SERVICE_URL=http://localhost:5004
 ```
 
+### Circuit breaker
+
+Each downstream service (auth, tasks, …) has its own circuit breaker. Repeated network errors, timeouts, or **5xx** responses can **open** the circuit; further requests return a **fallback** JSON payload (`degraded: true`) with HTTP **503** instead of calling the failing service.
+
+| Variable | Default | Meaning |
+|----------|---------|---------|
+| `CIRCUIT_BREAKER_ENABLED` | `true` | Set to `false` to disable |
+| `CIRCUIT_BREAKER_VOLUME_THRESHOLD` | `5` | Min requests in the rolling window before tripping |
+| `CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENT` | `50` | Failure % in the window that opens the circuit |
+| `CIRCUIT_BREAKER_RESET_TIMEOUT_MS` | `30000` | How long the circuit stays open before half-open retry |
+| `CIRCUIT_BREAKER_ROLLING_WINDOW_MS` | `10000` | Rolling window for failure rate |
+
+`GET /health` includes `circuitBreaker.enabled` and per-service states (`CLOSED`, `OPEN`, `HALF_OPEN`).
+
 ---
 
 ## Routes

@@ -10,11 +10,18 @@ services:
       PORT: 5000
       NODE_ENV: production
       HTTP_TIMEOUT_MS: 15000
+      CIRCUIT_BREAKER_ENABLED: "true"
+      CIRCUIT_BREAKER_VOLUME_THRESHOLD: 5
+      CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENT: 50
+      CIRCUIT_BREAKER_RESET_TIMEOUT_MS: 30000
+      CIRCUIT_BREAKER_ROLLING_WINDOW_MS: 10000
       AUTH_SERVICE_URL: http://taskflow-auth-service:5003
       TASK_SERVICE_URL: http://taskflow-task-service:5004
       NOTIFICATION_SERVICE_URL: http://taskflow-notification-service:5005
     networks:
-      - backend-network
+      backend-network:
+        aliases:
+          - api-gateway
 
 networks:
   backend-network:

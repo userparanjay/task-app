@@ -24,8 +24,10 @@ build
 Thumbs.db
 
 __tests__
+test
 *.spec.js
 *.test.js
+.github
 
 tmp
 temp

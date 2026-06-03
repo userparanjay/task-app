@@ -1,57 +1,23 @@
 /**
  * server.js — API Gateway entry point
- *
- * Role of a gateway in microservices:
- * - Single URL for the frontend (port 5000)
- * - Routes traffic to the correct microservice
- * - No database — only HTTP forwarding
- *
- * Later with Kubernetes: Ingress does a similar job in production.
  */
 
 import "dotenv/config";
-import express from "express";
-import cors from "cors";
-import authRoutes from "./routes/auth.routes.js";
-import taskRoutes from "./routes/task.routes.js";
-
-const app = express();
-
-// Allow frontend on taskflow.local (or comma-separated CORS_ORIGIN)
-const corsOrigin = process.env.CORS_ORIGIN;
-app.use(
-  cors(
-    corsOrigin
-      ? { origin: corsOrigin.split(",").map((o) => o.trim()), credentials: true }
-      : undefined,
-  ),
-);
-
-// Parse JSON body from client
-app.use(express.json());
-
-// All auth traffic under /api/auth
-app.use("/api/auth", authRoutes);
-
-// All task traffic under /api/tasks
-app.use("/api/tasks", taskRoutes);
-
-// Simple health check for the gateway itself
-app.get("/health", (_req, res) => {
-  console.log("health check is called", process.env.TASK_SERVICE_URL);
-  res.json({
-    status: "ok",
-    service: "api-gateway",
-    authService: process.env.AUTH_SERVICE_URL,
-    taskService: process.env.TASK_SERVICE_URL,
-  });
-});
+import app from "./app.js";
+import client from "prom-client"
 
 const PORT = process.env.PORT;
 
+const collectDefaultMeteric=client.collectDefaultMetrics
+collectDefaultMeteric({register:client.register})
+app.get('/meterics',async(req,res)=>{
+  res.setHeader('Content-Type',client.register.contentType)
+  const meterics=await client.register.metrics()
+  res.send(meterics)
+})
+
 app.listen(PORT, () => {
   console.log(`API Gateway running on http://localhost:${PORT}`);
-  console.log("health check is called", process.env.TASK_SERVICE_URL);
   console.log(`Forwarding /api/auth/*  → ${process.env.AUTH_SERVICE_URL}`);
   console.log(`Forwarding /api/tasks/* → ${process.env.TASK_SERVICE_URL}`);
 });

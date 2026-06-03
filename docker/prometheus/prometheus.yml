@@ -1,0 +1,22 @@
+# Prometheus for local Docker Compose.
+# API gateway is scraped via host IP (port published as 5000:5000).
+# Change API_GATEWAY_TARGET if your host IP differs.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: taskflow
+    environment: docker
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: api-gateway
+    metrics_path: /meterics
+    static_configs:
+      - targets: ["192.168.21.184:5000"]
+        labels:
+          service: api-gateway
